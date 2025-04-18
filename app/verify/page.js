@@ -1,10 +1,10 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import axios from 'axios';
 
-export default function VerifyPage() {
+function VerifyPageContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const [status, setStatus] = useState('loading');
@@ -38,5 +38,13 @@ export default function VerifyPage() {
       {status === 'success' && <p>✅ Success! Your email has been verified.</p>}
       {status === 'invalid' && <p>❌ Invalid or expired verification link.</p>}
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div>Loading verification page...</div>}>
+      <VerifyPageContent />
+    </Suspense>
   );
 }
