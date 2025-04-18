@@ -1,10 +1,10 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-function VerifyPageContent() {
+export default function VerifyPageContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const [status, setStatus] = useState('loading');
@@ -41,10 +41,3 @@ function VerifyPageContent() {
   );
 }
 
-export default function VerifyPage() {
-  return (
-    <Suspense fallback={<div>Loading verification page...</div>}>
-      <VerifyPageContent />
-    </Suspense>
-  );
-}
