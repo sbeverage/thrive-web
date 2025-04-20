@@ -1,12 +1,12 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation'; // 👈 this instead of useSearchParams
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export default function VerifyPageContent() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const params = useParams(); // 👈 useParams, not useSearchParams
+  const token = params.token; // 👈 get token from params
   const [status, setStatus] = useState('loading');
 
   useEffect(() => {
@@ -40,4 +40,3 @@ export default function VerifyPageContent() {
     </div>
   );
 }
-
