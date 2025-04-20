@@ -1,23 +1,26 @@
 'use client';
 
-import { useParams } from 'next/navigation'; // 👈 this instead of useSearchParams
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export default function VerifyPageContent() {
-  const params = useParams(); // 👈 useParams, not useSearchParams
-  const token = params.token; // 👈 get token from params
+  const params = useParams();
+  const token = params.token;
   const [status, setStatus] = useState('loading');
 
   useEffect(() => {
-    if (!token) {
-      setStatus('invalid');
-      return;
-    }
-
     const verifyToken = async () => {
+      if (!token) {
+        setStatus('invalid');
+        return;
+      }
+
+      console.log('🧪 Verifying token:', token); // ADD THIS TO DEBUG
+
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}/auth/verify/${encodeURIComponent(token)}`);
+        
         if (res.status === 200) {
           setStatus('success');
         } else {
@@ -27,7 +30,7 @@ export default function VerifyPageContent() {
         console.error('Verification error:', error.response?.data || error.message);
         setStatus('invalid');
       }
-    };    
+    };
 
     verifyToken();
   }, [token]);
