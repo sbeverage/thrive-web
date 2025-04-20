@@ -17,7 +17,7 @@ export default function VerifyPageContent() {
 
     const verifyToken = async () => {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}/api/auth/verify/${token}`);
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}/auth/verify/${token}`);
         if (res.status === 200) {
           setStatus('success');
         } else {
