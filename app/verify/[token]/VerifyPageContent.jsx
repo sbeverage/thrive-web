@@ -10,33 +10,34 @@ export default function VerifyPageContent() {
   const [status, setStatus] = useState('loading');
 
   useEffect(() => {
-    const verifyToken = async () => {
+    const verify = async () => {
       if (!token) {
         setStatus('invalid');
         return;
       }
 
-      console.log('🛫 FRONTEND sending token:', token);
+      console.log("🛫 Sending token:", token);
 
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}/auth/verify/${encodeURIComponent(token)}`);
-        
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}/auth/verify/${token}`);
+        console.log('✅ Backend verification response:', res.data);
+
         if (res.status === 200) {
           setStatus('success');
         } else {
           setStatus('invalid');
         }
       } catch (error) {
-        console.error('🛑 FRONTEND verification error:', error.response?.data || error.message);
+        console.error('🛑 Verification error:', error.response?.data || error.message);
         setStatus('invalid');
       }
     };
 
-    verifyToken();
+    verify();
   }, [token]);
 
   return (
-    <div style={{ padding: "2rem", textAlign: "center" }}>
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
       {status === 'loading' && <p>🔄 Verifying your email...</p>}
       {status === 'success' && <p>✅ Success! Your email has been verified.</p>}
       {status === 'invalid' && <p>❌ Invalid or expired verification link.</p>}
