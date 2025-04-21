@@ -16,7 +16,7 @@ export default function VerifyPageContent() {
         return;
       }
 
-      console.log('🧪 Verifying token:', token); // ADD THIS TO DEBUG
+      console.log('🛫 FRONTEND sending token:', token);
 
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}/auth/verify/${encodeURIComponent(token)}`);
@@ -27,7 +27,7 @@ export default function VerifyPageContent() {
           setStatus('invalid');
         }
       } catch (error) {
-        console.error('Verification error:', error.response?.data || error.message);
+        console.error('🛑 FRONTEND verification error:', error.response?.data || error.message);
         setStatus('invalid');
       }
     };
