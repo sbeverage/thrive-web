@@ -65,3 +65,9 @@ function VerifyContent() {
         <div>
           <p style={{ color: 'green' }}>✅ {message}</p>
           <p>You can now return to the Thrive app and continue using all features.</p>
+        </div>
+      )}
+      
+      {status === 'error' && (
+        <div>
+          <p style={{ color: 'red'
