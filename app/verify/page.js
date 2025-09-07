@@ -22,12 +22,11 @@ export default function VerifyPage() {
 
   const verifyEmail = async () => {
     try {
-      const response = await fetch(`https://your-backend-url.com/api/auth/verify-email`, {
-        method: 'POST',
+      const response = await fetch(`http://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/auth/verify/${token}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token, email }),
       });
 
       const data = await response.json();
