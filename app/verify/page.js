@@ -70,4 +70,18 @@ function VerifyContent() {
       
       {status === 'error' && (
         <div>
-          <p style={{ color: 'red'
+          <p style={{ color: 'red' }}>❌ {message}</p>
+          <p>Please try again or contact support if the problem persists.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>}>
+      <VerifyContent />
+    </Suspense>
+  );
+}
