@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function VerifyPage() {
+function VerifyContent() {
   const [status, setStatus] = useState('verifying');
   const [message, setMessage] = useState('');
   const searchParams = useSearchParams();
@@ -65,15 +65,3 @@ export default function VerifyPage() {
         <div>
           <p style={{ color: 'green' }}>✅ {message}</p>
           <p>You can now return to the Thrive app and continue using all features.</p>
-        </div>
-      )}
-      
-      {status === 'error' && (
-        <div>
-          <p style={{ color: 'red' }}>❌ {message}</p>
-          <p>Please try again or contact support if the problem persists.</p>
-        </div>
-      )}
-    </div>
-  );
-}
