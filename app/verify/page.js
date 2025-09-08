@@ -18,13 +18,19 @@ function VerifyContent() {
       return;
     }
 
-    // Instead of calling backend, just redirect to mobile app
+    // Show success message
     setStatus('success');
     setMessage('Email verified successfully!');
     
-    // Redirect to your app with the verification data
+    // Try multiple redirect methods
     setTimeout(() => {
+      // Method 1: Try to redirect to your app
       window.location.href = `thriveapp://verify?token=${token}&email=${encodeURIComponent(email)}`;
+      
+      // Method 2: Fallback - show instructions
+      setTimeout(() => {
+        setMessage('Email verified! Please return to the Thrive app to continue.');
+      }, 2000);
     }, 2000);
 
   }, [searchParams]);
@@ -36,7 +42,7 @@ function VerifyContent() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)',
       padding: '20px',
       fontFamily: 'system-ui, -apple-system, sans-serif'
     }}>
@@ -54,7 +60,7 @@ function VerifyContent() {
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)',
           margin: '0 auto 30px',
           display: 'flex',
           alignItems: 'center',
@@ -95,7 +101,7 @@ function VerifyContent() {
             width: '40px',
             height: '40px',
             border: '4px solid #f3f3f3',
-            borderTop: '4px solid #667eea',
+            borderTop: '4px solid #0ea5e9',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
             margin: '0 auto'
@@ -117,7 +123,9 @@ function VerifyContent() {
               margin: '0',
               fontWeight: '500'
             }}>
-              Redirecting you back to the Thrive app...
+              {message.includes('return to the Thrive app') ? 
+                'Please return to the Thrive app to continue.' : 
+                'Redirecting you back to the Thrive app...'}
             </p>
           </div>
         )}
@@ -162,7 +170,7 @@ export default function VerifyPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        background: 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)'
       }}>
         <div style={{
           color: 'white',
