@@ -14,7 +14,7 @@ function VerifyContent() {
 
     if (!token || !email) {
       setStatus('error');
-      setMessage('Invalid verification link.');
+      setMessage('Invalid verification link. Please try again.');
       return;
     }
 
@@ -22,9 +22,15 @@ function VerifyContent() {
     setStatus('success');
     setMessage('Email verified successfully!');
     
-    // Try to redirect to your app
+    // Try multiple redirect methods
     setTimeout(() => {
+      // Method 1: Try to redirect to your app
       window.location.href = `thriveapp://verify?token=${token}&email=${encodeURIComponent(email)}`;
+      
+      // Method 2: Fallback - show instructions
+      setTimeout(() => {
+        setMessage('Email verified successfully');
+      }, 2000);
     }, 2000);
 
   }, [searchParams]);
@@ -117,7 +123,9 @@ function VerifyContent() {
               margin: '0',
               fontWeight: '500'
             }}>
-              Redirecting to THRIVE Initiative app...
+              {message.includes('return to the Thrive app') ? 
+                'Please return to the THRIVE Initiative app to continue.' : 
+                'Redirecting you back to the Thrive app...'}
             </p>
           </div>
         )}
@@ -137,7 +145,7 @@ function VerifyContent() {
               margin: '0',
               fontWeight: '500'
             }}>
-              Please try the verification link again.
+              Please try the verification link again or contact support.
             </p>
           </div>
         )}
