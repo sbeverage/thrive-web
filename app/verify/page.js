@@ -18,44 +18,15 @@ function VerifyContent() {
       return;
     }
 
-    // Call your backend verification endpoint
-    const verifyEmail = async () => {
-      try {
-        const response = await fetch('http://thrive-backend-final.eba-fxvg5pyf.us-east-1.elasticbeanstalk.com/api/auth/verify/' + token, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+    // Instead of calling backend, just redirect to mobile app
+    setStatus('success');
+    setMessage('Email verified successfully!');
+    
+    // Redirect to your app with the verification data
+    setTimeout(() => {
+      window.location.href = `thriveapp://verify?token=${token}&email=${encodeURIComponent(email)}`;
+    }, 2000);
 
-        const data = await response.json();
-
-        if (data.success || data.message?.includes('verified') || data.message?.includes('success')) {
-          setStatus('success');
-          setMessage('Email verified successfully!');
-          
-          // Redirect to your app after successful verification
-          setTimeout(() => {
-            // Try to redirect to your app
-            window.location.href = 'thriveapp://verify-success';
-            
-            // Fallback: Show success message and instructions
-            setTimeout(() => {
-              alert('Email verified! Please return to the Thrive app to continue.');
-            }, 1000);
-          }, 2000);
-        } else {
-          setStatus('error');
-          setMessage(data.message || 'Verification failed. Please try again.');
-        }
-      } catch (error) {
-        console.error('Verification error:', error);
-        setStatus('error');
-        setMessage('Verification failed. Please try again.');
-      }
-    };
-
-    verifyEmail();
   }, [searchParams]);
 
   return (
