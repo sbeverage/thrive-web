@@ -21,49 +21,35 @@ function VerifyContent() {
     setIsRedirecting(true);
     
     // Try to open the app using custom scheme deep link
-    // Safari can't open custom schemes directly, so we use a hidden iframe trick
+    // Note: Safari blocks automatic redirects, so this should only be called on user action
     const deepLink = `thriveapp://verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`;
     
-    // Method 1: Try using window.location (works in some browsers)
+    // Try Universal Link first (works better in Safari)
+    const universalLink = `https://thrive-web-jet.vercel.app/verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`;
+    
+    // Method 1: Try Universal Link (will open app if configured)
     try {
-      window.location.href = deepLink;
+      window.location.href = universalLink;
     } catch (error) {
-      console.log('Direct redirect failed, trying iframe method');
+      console.log('Universal link redirect failed, trying deep link');
     }
     
-    // Method 2: Use hidden iframe (works better in Safari)
+    // Method 2: Try custom scheme deep link after a short delay
     setTimeout(() => {
       try {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = deepLink;
-        document.body.appendChild(iframe);
-        
-        // Remove iframe after a short delay
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-        }, 1000);
+        // Use window.location for user-initiated actions (works better than iframe)
+        window.location.href = deepLink;
       } catch (error) {
-        console.error('Iframe redirect failed:', error);
+        console.error('Deep link redirect failed:', error);
       }
-    }, 100);
-    
-    // Method 3: Try window.open as fallback
-    setTimeout(() => {
-      try {
-        window.open(deepLink, '_blank');
-      } catch (error) {
-        console.error('Window.open redirect failed:', error);
-      }
-    }, 200);
+    }, 500);
   };
 
   useEffect(() => {
-    // If already verified (from redirect), just show success and redirect to app
+    // If already verified (from redirect), just show success - don't auto-redirect
     if (verified === 'true' && token) {
       setStatus('success');
-      setMessage('Email verified successfully! Opening the Thrive app...');
-      redirectToApp();
+      setMessage('Email verified successfully! Tap the button below to open the Thrive app.');
       return;
     }
 
@@ -110,12 +96,10 @@ function VerifyContent() {
       if (response.ok && (data.success || data.message?.includes('verified') || data.message?.includes('success'))) {
         console.log('✅ Verification successful!');
         setStatus('success');
-        setMessage('Email verified successfully! Opening the Thrive app...');
+        setMessage('Email verified successfully! Tap the button below to open the Thrive app.');
         
-        // Redirect to app after a short delay
-        setTimeout(() => {
-          redirectToApp();
-        }, 1500);
+        // Don't auto-redirect - Safari blocks it. Let user click the button instead.
+        // The button click will trigger redirectToApp() which is a user action
       } else {
         console.error('❌ Verification failed:', data);
         setStatus('error');
