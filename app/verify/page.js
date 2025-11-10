@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 // Supabase backend configuration
 const BACKEND_URL = 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.EtIyUJ3kFILYV6bAIETAk6RE-ra7sEDd14bDG7PDVfg';
 
-export default function VerifyPage() {
+function VerifyContent() {
   const [status, setStatus] = useState('verifying');
   const [message, setMessage] = useState('');
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -202,5 +202,36 @@ export default function VerifyPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ 
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #DB8633 0%, #324E58 100%)',
+        padding: '2rem',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}>
+        <div style={{ 
+          background: 'white',
+          borderRadius: '20px',
+          padding: '3rem',
+          maxWidth: '500px',
+          width: '100%',
+          textAlign: 'center',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
+        }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏳</div>
+          <p style={{ color: '#666', fontSize: '1.1rem' }}>Loading...</p>
+        </div>
+      </div>
+    }>
+      <VerifyContent />
+    </Suspense>
   );
 }
