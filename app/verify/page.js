@@ -1,187 +1,206 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-function VerifyContent() {
-  const searchParams = useSearchParams();
+// Supabase backend configuration
+const BACKEND_URL = 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.EtIyUJ3kFILYV6bAIETAk6RE-ra7sEDd14bDG7PDVfg';
+
+export default function VerifyPage() {
   const [status, setStatus] = useState('verifying');
-  const [message, setMessage] = useState('Verifying your email...');
+  const [message, setMessage] = useState('');
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const searchParams = useSearchParams();
+  
+  const token = searchParams.get('token');
+  const email = searchParams.get('email');
+  const verified = searchParams.get('verified'); // Check if already verified
+
+  const redirectToApp = () => {
+    setIsRedirecting(true);
+    
+    // Try to open the app using custom scheme deep link
+    // Safari can't open custom schemes directly, so we use a hidden iframe trick
+    const deepLink = `thriveapp://verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`;
+    
+    // Method 1: Try using window.location (works in some browsers)
+    try {
+      window.location.href = deepLink;
+    } catch (error) {
+      console.log('Direct redirect failed, trying iframe method');
+    }
+    
+    // Method 2: Use hidden iframe (works better in Safari)
+    setTimeout(() => {
+      try {
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = deepLink;
+        document.body.appendChild(iframe);
+        
+        // Remove iframe after a short delay
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+        }, 1000);
+      } catch (error) {
+        console.error('Iframe redirect failed:', error);
+      }
+    }, 100);
+    
+    // Method 3: Try window.open as fallback
+    setTimeout(() => {
+      try {
+        window.open(deepLink, '_blank');
+      } catch (error) {
+        console.error('Window.open redirect failed:', error);
+      }
+    }, 200);
+  };
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    const email = searchParams.get('email');
-
-    if (!token || !email) {
-      setStatus('error');
-      setMessage('Invalid verification link. Please try again.');
+    // If already verified (from redirect), just show success and redirect to app
+    if (verified === 'true' && token) {
+      setStatus('success');
+      setMessage('Email verified successfully! Opening the Thrive app...');
+      redirectToApp();
       return;
     }
 
-    // Show success message
-    setStatus('success');
-    setMessage('Email verified successfully!');
-    
-    // Try multiple redirect methods
-    setTimeout(() => {
-      // Method 1: Try to redirect to your app
-      window.location.href = `thriveapp://verify?token=${token}&email=${encodeURIComponent(email)}`;
-      
-      // Method 2: Fallback - show instructions
-      setTimeout(() => {
-        setMessage('Email verified successfully');
-      }, 2000);
-    }, 2000);
+    // Otherwise, verify the email
+    if (token) {
+      verifyEmail();
+    } else {
+      setStatus('error');
+      setMessage('Missing verification token');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, email, verified]);
 
-  }, [searchParams]);
+  const verifyEmail = async () => {
+    try {
+      // Use the correct Supabase Edge Function endpoint
+      const response = await fetch(`${BACKEND_URL}/api/auth/verify-email?token=${token}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && (data.success || data.message?.includes('verified') || data.message?.includes('success'))) {
+        setStatus('success');
+        setMessage('Email verified successfully! Opening the Thrive app...');
+        
+        // Redirect to app after a short delay
+        setTimeout(() => {
+          redirectToApp();
+        }, 1500);
+      } else {
+        setStatus('error');
+        setMessage(data.error || data.message || 'Verification failed');
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+      setStatus('error');
+      setMessage('An error occurred during verification. Please try again.');
+    }
+  };
+
+  const handleOpenApp = () => {
+    redirectToApp();
+  };
 
   return (
-    <div style={{
+    <div style={{ 
       minHeight: '100vh',
       display: 'flex',
-      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)',
-      padding: '20px',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+      background: 'linear-gradient(135deg, #DB8633 0%, #324E58 100%)',
+      padding: '2rem',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
     }}>
-      <div style={{
-        backgroundColor: 'white',
+      <div style={{ 
+        background: 'white',
         borderRadius: '20px',
-        padding: '40px',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+        padding: '3rem',
+        maxWidth: '500px',
+        width: '100%',
         textAlign: 'center',
-        maxWidth: '400px',
-        width: '100%'
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
       }}>
-        {/* Logo/Icon */}
-        <div style={{
-          width: '80px',
-          height: '80px',
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)',
-          margin: '0 auto 30px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '32px',
-          color: 'white'
-        }}>
-          {status === 'success' ? '✅' : status === 'error' ? '❌' : '⏳'}
-        </div>
-
-        {/* Title */}
-        <h1 style={{
-          fontSize: '28px',
+        <h1 style={{ 
+          color: '#DB8633',
+          marginBottom: '1.5rem',
+          fontSize: '2rem',
           fontWeight: 'bold',
-          color: '#333',
-          marginBottom: '20px',
-          margin: '0 0 20px 0'
         }}>
-          {status === 'success' ? 'Email Verified!' : 
-           status === 'error' ? 'Verification Failed' : 
-           'Verifying Email...'}
+          Email Verification
         </h1>
-
-        {/* Message */}
-        <p style={{
-          fontSize: '16px',
-          color: '#666',
-          lineHeight: '1.5',
-          marginBottom: '30px',
-          margin: '0 0 30px 0'
-        }}>
-          {message}
-        </p>
-
-        {/* Status indicator */}
+        
         {status === 'verifying' && (
-          <div style={{
-            width: '40px',
-            height: '40px',
-            border: '4px solid #f3f3f3',
-            borderTop: '4px solid #0ea5e9',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto'
-          }} />
+          <div>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏳</div>
+            <p style={{ color: '#666', fontSize: '1.1rem' }}>Verifying your email...</p>
+          </div>
         )}
-
-        {/* Success message */}
+        
         {status === 'success' && (
-          <div style={{
-            backgroundColor: '#f0f9ff',
-            border: '1px solid #0ea5e9',
-            borderRadius: '12px',
-            padding: '20px',
-            marginTop: '20px'
-          }}>
-            <p style={{
-              color: '#0369a1',
-              fontSize: '14px',
-              margin: '0',
-              fontWeight: '500'
-            }}>
-              {message.includes('return to the Thrive app') ? 
-                'Please return to the THRIVE Initiative app to continue.' : 
-                'Redirecting you back to the Thrive app...'}
+          <div>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
+            <p style={{ color: '#4CAF50', fontSize: '1.2rem', fontWeight: '600', marginBottom: '1rem' }}>
+              Email Verified!
+            </p>
+            <p style={{ color: '#666', marginBottom: '2rem' }}>
+              {message || 'Your email has been verified successfully. Opening the Thrive app...'}
+            </p>
+            
+            <button
+              onClick={handleOpenApp}
+              style={{
+                backgroundColor: '#DB8633',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '14px 28px',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s',
+                marginTop: '1rem',
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#c97527'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#DB8633'}
+            >
+              {isRedirecting ? 'Opening App...' : 'Open in Thrive App'}
+            </button>
+            
+            <p style={{ color: '#666', fontSize: '0.9rem', marginTop: '1.5rem' }}>
+              {isRedirecting 
+                ? 'If the app didn\'t open automatically, tap the button above.'
+                : 'Tap the button above to open the Thrive app and continue.'}
             </p>
           </div>
         )}
-
-        {/* Error message */}
+        
         {status === 'error' && (
-          <div style={{
-            backgroundColor: '#fef2f2',
-            border: '1px solid #f87171',
-            borderRadius: '12px',
-            padding: '20px',
-            marginTop: '20px'
-          }}>
-            <p style={{
-              color: '#dc2626',
-              fontSize: '14px',
-              margin: '0',
-              fontWeight: '500'
-            }}>
-              Please try the verification link again or contact support.
+          <div>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
+            <p style={{ color: '#f44336', fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem' }}>
+              Verification Failed
+            </p>
+            <p style={{ color: '#666', marginBottom: '1rem' }}>
+              {message || 'The verification link is invalid or has expired.'}
+            </p>
+            <p style={{ color: '#999', fontSize: '0.9rem' }}>
+              Please try again or contact support if the problem persists.
             </p>
           </div>
         )}
       </div>
-
-      {/* CSS for spinner animation */}
-      <style jsx>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
-  );
-}
-
-export default function VerifyPage() {
-  return (
-    <Suspense fallback={
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)'
-      }}>
-        <div style={{
-          color: 'white',
-          fontSize: '18px',
-          fontWeight: '500'
-        }}>
-          Loading...
-        </div>
-      </div>
-    }>
-      <VerifyContent />
-    </Suspense>
   );
 }
