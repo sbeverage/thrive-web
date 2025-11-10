@@ -20,29 +20,49 @@ function VerifyContent() {
   const redirectToApp = () => {
     setIsRedirecting(true);
     
-    // Try to open the app using custom scheme deep link
-    // Note: Safari blocks automatic redirects, so this should only be called on user action
+    console.log('🔗 Attempting to open app...');
+    
+    // Build deep link with token and email
     const deepLink = `thriveapp://verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`;
+    console.log('🔗 Deep link:', deepLink);
     
-    // Try Universal Link first (works better in Safari)
-    const universalLink = `https://thrive-web-jet.vercel.app/verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`;
-    
-    // Method 1: Try Universal Link (will open app if configured)
+    // For iOS Safari, we need to use a different approach
+    // Try creating an anchor element and clicking it (works better in Safari)
     try {
-      window.location.href = universalLink;
+      const anchor = document.createElement('a');
+      anchor.href = deepLink;
+      anchor.style.display = 'none';
+      document.body.appendChild(anchor);
+      
+      // Trigger click event (user-initiated action)
+      anchor.click();
+      
+      // Remove anchor after a short delay
+      setTimeout(() => {
+        document.body.removeChild(anchor);
+      }, 1000);
+      
+      console.log('✅ Deep link triggered via anchor click');
     } catch (error) {
-      console.log('Universal link redirect failed, trying deep link');
-    }
-    
-    // Method 2: Try custom scheme deep link after a short delay
-    setTimeout(() => {
+      console.error('❌ Anchor click failed:', error);
+      
+      // Fallback: Try window.location directly
       try {
-        // Use window.location for user-initiated actions (works better than iframe)
         window.location.href = deepLink;
-      } catch (error) {
-        console.error('Deep link redirect failed:', error);
+        console.log('✅ Deep link triggered via window.location');
+      } catch (locationError) {
+        console.error('❌ Window.location failed:', locationError);
+        
+        // Last resort: Try window.open
+        try {
+          window.open(deepLink, '_blank');
+          console.log('✅ Deep link triggered via window.open');
+        } catch (openError) {
+          console.error('❌ All redirect methods failed:', openError);
+          alert('Unable to open the app. Please open the Thrive app manually.');
+        }
       }
-    }, 500);
+    }
   };
 
   useEffect(() => {
@@ -166,9 +186,14 @@ function VerifyContent() {
               {message || 'Your email has been verified successfully. Opening the Thrive app...'}
             </p>
             
-            <button
-              onClick={handleOpenApp}
+            <a
+              href={`thriveapp://verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleOpenApp();
+              }}
               style={{
+                display: 'inline-block',
                 backgroundColor: '#DB8633',
                 color: 'white',
                 border: 'none',
@@ -177,6 +202,7 @@ function VerifyContent() {
                 fontSize: '1rem',
                 fontWeight: 'bold',
                 cursor: 'pointer',
+                textDecoration: 'none',
                 transition: 'background-color 0.3s',
                 marginTop: '1rem',
               }}
@@ -184,7 +210,7 @@ function VerifyContent() {
               onMouseOut={(e) => e.target.style.backgroundColor = '#DB8633'}
             >
               {isRedirecting ? 'Opening App...' : 'Open in Thrive App'}
-            </button>
+            </a>
             
             <p style={{ color: '#666', fontSize: '0.9rem', marginTop: '1.5rem' }}>
               {isRedirecting 
