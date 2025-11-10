@@ -79,6 +79,9 @@ function VerifyContent() {
 
   const verifyEmail = async () => {
     try {
+      console.log('🔍 Starting verification for token:', token);
+      console.log('🔍 Backend URL:', `${BACKEND_URL}/api/auth/verify-email?token=${token}`);
+      
       // Use the correct Supabase Edge Function endpoint
       const response = await fetch(`${BACKEND_URL}/api/auth/verify-email?token=${token}`, {
         method: 'GET',
@@ -88,9 +91,24 @@ function VerifyContent() {
         },
       });
 
-      const data = await response.json();
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+
+      let data;
+      try {
+        data = await response.json();
+        console.log('📡 Response data:', data);
+      } catch (jsonError) {
+        console.error('❌ Failed to parse JSON response:', jsonError);
+        const text = await response.text();
+        console.error('❌ Response text:', text);
+        setStatus('error');
+        setMessage('Invalid response from server. Please try again.');
+        return;
+      }
 
       if (response.ok && (data.success || data.message?.includes('verified') || data.message?.includes('success'))) {
+        console.log('✅ Verification successful!');
         setStatus('success');
         setMessage('Email verified successfully! Opening the Thrive app...');
         
@@ -99,13 +117,19 @@ function VerifyContent() {
           redirectToApp();
         }, 1500);
       } else {
+        console.error('❌ Verification failed:', data);
         setStatus('error');
-        setMessage(data.error || data.message || 'Verification failed');
+        setMessage(data.error || data.message || data.code || 'Verification failed');
       }
     } catch (error) {
-      console.error('Verification error:', error);
+      console.error('❌ Verification error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
       setStatus('error');
-      setMessage('An error occurred during verification. Please try again.');
+      setMessage(error.message || 'An error occurred during verification. Please try again.');
     }
   };
 
