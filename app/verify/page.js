@@ -22,45 +22,49 @@ function VerifyContent() {
     
     console.log('🔗 Attempting to open app...');
     
-    // Build deep link with token and email
+    // Use Universal Link first (works better in Safari and handles app not installed gracefully)
+    const universalLink = `https://thrive-web-jet.vercel.app/verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`;
+    console.log('🔗 Universal Link:', universalLink);
+    
+    // Build custom scheme deep link as fallback
     const deepLink = `thriveapp://verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`;
     console.log('🔗 Deep link:', deepLink);
     
-    // For iOS Safari, we need to use a different approach
-    // Try creating an anchor element and clicking it (works better in Safari)
+    // Method 1: Try Universal Link first (will open app if installed, or stay on web page if not)
     try {
-      const anchor = document.createElement('a');
-      anchor.href = deepLink;
-      anchor.style.display = 'none';
-      document.body.appendChild(anchor);
+      // Use window.location for Universal Links (works better than anchor click)
+      window.location.href = universalLink;
+      console.log('✅ Universal Link triggered');
       
-      // Trigger click event (user-initiated action)
-      anchor.click();
-      
-      // Remove anchor after a short delay
+      // If app doesn't open after 2 seconds, try custom scheme as fallback
       setTimeout(() => {
-        document.body.removeChild(anchor);
-      }, 1000);
-      
-      console.log('✅ Deep link triggered via anchor click');
+        try {
+          // Try custom scheme as fallback
+          const anchor = document.createElement('a');
+          anchor.href = deepLink;
+          anchor.style.display = 'none';
+          document.body.appendChild(anchor);
+          anchor.click();
+          setTimeout(() => {
+            if (anchor.parentNode) {
+              document.body.removeChild(anchor);
+            }
+          }, 1000);
+          console.log('✅ Custom scheme fallback triggered');
+        } catch (fallbackError) {
+          console.error('❌ Custom scheme fallback failed:', fallbackError);
+        }
+      }, 2000);
     } catch (error) {
-      console.error('❌ Anchor click failed:', error);
+      console.error('❌ Universal Link failed:', error);
       
-      // Fallback: Try window.location directly
+      // Fallback: Try custom scheme directly
       try {
         window.location.href = deepLink;
-        console.log('✅ Deep link triggered via window.location');
+        console.log('✅ Custom scheme triggered');
       } catch (locationError) {
-        console.error('❌ Window.location failed:', locationError);
-        
-        // Last resort: Try window.open
-        try {
-          window.open(deepLink, '_blank');
-          console.log('✅ Deep link triggered via window.open');
-        } catch (openError) {
-          console.error('❌ All redirect methods failed:', openError);
-          alert('Unable to open the app. Please open the Thrive app manually.');
-        }
+        console.error('❌ All redirect methods failed:', locationError);
+        alert('Unable to open the app. If the app is installed, please open it manually. If not, please install the Thrive app from the App Store.');
       }
     }
   };
@@ -187,7 +191,7 @@ function VerifyContent() {
             </p>
             
             <a
-              href={`thriveapp://verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`}
+              href={`https://thrive-web-jet.vercel.app/verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`}
               onClick={(e) => {
                 e.preventDefault();
                 handleOpenApp();
