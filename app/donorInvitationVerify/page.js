@@ -115,7 +115,7 @@ function DonorInvitationContent() {
               Open in Thrive App
             </button>
             <p style={{ color: '#999', fontSize: '0.85rem', marginTop: '1.5rem' }}>
-              Don't have the app yet?{' '}
+              Don&apos;t have the app yet?{' '}
               <a
                 href="https://apps.apple.com/app/thrive-initiative/id6744030078"
                 style={{ color: '#DB8633' }}
