@@ -4,8 +4,9 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 // Supabase backend configuration
-const BACKEND_URL = 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.EtIyUJ3kFILYV6bAIETAk6RE-ra7sEDd14bDG7PDVfg';
+const BACKEND_URL = process.env.NEXT_PUBLIC_SUPABASE_FUNCTIONS_URL || 'https://mdqgndyhzlnwojtubouh.supabase.co/functions/v1';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcWduZHloemxud29qdHVib3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5NjE3MTksImV4cCI6MjA3NzUzNzcxOX0.EtIyUJ3kFILYV6bAIETAk6RE-ra7sEDd14bDG7PDVfg';
+const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://thrive-web-jet.vercel.app';
 
 function VerifyContent() {
   const [status, setStatus] = useState('verifying');
@@ -23,7 +24,7 @@ function VerifyContent() {
     console.log('🔗 Attempting to open app...');
     
     // Use Universal Link first (works better in Safari and handles app not installed gracefully)
-    const universalLink = `https://thrive-web-jet.vercel.app/verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`;
+    const universalLink = `${APP_BASE_URL}/verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`;
     console.log('🔗 Universal Link:', universalLink);
     
     // Build custom scheme deep link as fallback
@@ -191,7 +192,7 @@ function VerifyContent() {
             </p>
             
             <a
-              href={`https://thrive-web-jet.vercel.app/verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`}
+              href={`${APP_BASE_URL}/verify?token=${token || ''}&email=${encodeURIComponent(email || '')}&verified=true`}
               onClick={(e) => {
                 e.preventDefault();
                 handleOpenApp();
